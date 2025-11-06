@@ -59,7 +59,7 @@ def detect_wilayah(location: str) -> str:
     
     location_upper = str(location).upper()
     for wilayah, pattern in WILAYAH_PATTERNS.items():
-        if re.search(pattern, location_upper, re.IGNORECASE):
+        if re.search(pattern, location_upper):
             return wilayah
     
     return 'Unknown'
@@ -252,8 +252,10 @@ def compute_location_quotient(result: pd.DataFrame, df: pd.DataFrame) -> pd.Data
             lq_col = col.replace('trx_', 'lq_')
             
             # LQ = (item_trx_in_wilayah / item_trx_total) / (wilayah_total / total_all)
-            result[lq_col] = (result[col] / result['transaksi_count_total']) / (wilayah_total / total_all)
-            result[lq_col] = result[lq_col].fillna(0)
+            # Avoid division by zero by using where clause
+            result[lq_col] = 0.0
+            mask = (result['transaksi_count_total'] > 0) & (total_all > 0) & (wilayah_total > 0)
+            result.loc[mask, lq_col] = (result.loc[mask, col] / result.loc[mask, 'transaksi_count_total']) / (wilayah_total / total_all)
             
             lq_values[wilayah_name] = lq_col
     
