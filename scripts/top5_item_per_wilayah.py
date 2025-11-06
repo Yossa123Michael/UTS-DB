@@ -196,11 +196,16 @@ def compute_top5_per_wilayah(csv_path, output_path):
         required_cols['deskripsi']: 'deskripsi'
     })
     
+    # Sort wilayah by total transaction count (highest to lowest)
+    print("Sorting wilayah by total transactions...")
+    wilayah_totals = grouped.groupby('wilayah')['transaksi_count'].sum().sort_values(ascending=False)
+    sorted_dki_wilayah = [w for w in wilayah_totals.index if w in dki_wilayah]
+    
     # Sort within each wilayah and select top 5
     print("Selecting top 5 per wilayah...")
     top5_list = []
     
-    for wilayah in dki_wilayah:
+    for wilayah in sorted_dki_wilayah:
         wilayah_data = grouped[grouped['wilayah'] == wilayah].copy()
         
         # Sort by transaksi_count desc, qty_total desc, nilai_total desc
@@ -224,11 +229,13 @@ def compute_top5_per_wilayah(csv_path, output_path):
     # Print summary
     print("\n" + "="*80)
     print("TOP 5 ITEMS PER WILAYAH - SUMMARY")
+    print("(Sorted by total transactions: highest to lowest)")
     print("="*80)
     
-    for wilayah in dki_wilayah:
+    for wilayah in sorted_dki_wilayah:
         wilayah_data = result[result['wilayah'] == wilayah]
-        print(f"\n{wilayah} ({len(wilayah_data)} items):")
+        wilayah_total = wilayah_data['transaksi_count'].sum()
+        print(f"\n{wilayah} ({len(wilayah_data)} items, {wilayah_total} total transactions):")
         print("-" * 80)
         
         for idx, row in wilayah_data.iterrows():
