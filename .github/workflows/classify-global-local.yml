@@ -1,0 +1,47 @@
+name: Classify Items Global/Regional/Local
+
+on:
+  push:
+    branches:
+      - classify-global-local
+      - copilot/classify-items-global-regional-local
+    paths:
+      - '.github/workflows/classify-global-local.yml'
+      - 'scripts/classify_item_global_local.py'
+      - 'Data UTS Transaksi Bantex  2019 - 2024.xlsx - DATA TRANSAKSI.csv'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  classify-items:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy
+      
+      - name: Run classification script
+        run: |
+          python scripts/classify_item_global_local.py \
+            "Data UTS Transaksi Bantex  2019 - 2024.xlsx - DATA TRANSAKSI.csv" \
+            --output Hasil/classifikasi_item_global_lokal.csv
+      
+      - name: Commit and push results
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add Hasil/classifikasi_item_global_lokal.csv
+          git diff --staged --quiet || git commit -m "Auto-update item classification results [skip ci]"
+          git push
