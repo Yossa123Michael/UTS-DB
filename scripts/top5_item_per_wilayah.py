@@ -10,6 +10,7 @@ This script analyzes transaction data from a CSV file and computes:
 import pandas as pd
 import re
 import sys
+import traceback
 from pathlib import Path
 
 
@@ -36,6 +37,12 @@ def parse_indonesian_number(value):
         return float(cleaned)
     except (ValueError, AttributeError):
         return None
+
+
+def get_first_non_null_harga(series):
+    """Get first non-null value from a series, return None if all are null"""
+    non_null = series.dropna()
+    return non_null.iloc[0] if len(non_null) > 0 else None
 
 
 def normalize_column_name(col):
@@ -179,7 +186,7 @@ def compute_top5_per_wilayah(csv_path, output_path):
     grouped = df_dki.groupby(['wilayah', required_cols['kodeitem'], required_cols['deskripsi']]).agg(
         transaksi_count=(required_cols['idtransaksi'], 'nunique'),
         qty_total=('qty_parsed', 'sum'),
-        harga_first=('harga_parsed', lambda x: x.dropna().iloc[0] if len(x.dropna()) > 0 else None),
+        harga_first=('harga_parsed', get_first_non_null_harga),
         nilai_total=('nilai_per_row', 'sum')
     ).reset_index()
     
@@ -254,7 +261,6 @@ def main():
         return 0
     except Exception as e:
         print(f"\nError: {e}", file=sys.stderr)
-        import traceback
         traceback.print_exc()
         return 1
 
