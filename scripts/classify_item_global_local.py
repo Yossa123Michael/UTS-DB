@@ -5,9 +5,7 @@ Classify items into Global, Regional, or Local based on distribution across DKI 
 
 import argparse
 import re
-import sys
 from pathlib import Path
-from typing import Dict, Tuple
 
 import pandas as pd
 import numpy as np
@@ -272,12 +270,12 @@ def compute_location_quotient(result: pd.DataFrame, df: pd.DataFrame) -> pd.Data
     return result
 
 
-def classify_items(result: pd.DataFrame) -> pd.DataFrame:
+def classify_items(result: pd.DataFrame, n_min: int = N_MIN) -> pd.DataFrame:
     """Apply classification rules to label items."""
     
     def classify_item(row):
         # Low-Volume items
-        if row['transaksi_count_total'] < N_MIN:
+        if row['transaksi_count_total'] < n_min:
             return 'Low-Volume'
         
         # Global items
@@ -385,7 +383,7 @@ def main():
     result = compute_location_quotient(result, df)
     
     # Classify items
-    result = classify_items(result)
+    result = classify_items(result, args.n_min)
     
     # Sort by transaction count descending
     result = result.sort_values('transaksi_count_total', ascending=False)
