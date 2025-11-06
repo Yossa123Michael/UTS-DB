@@ -8,6 +8,7 @@ Process transaction data to generate:
 import csv
 import os
 from collections import defaultdict, Counter
+from math import log
 
 def extract_region(lokasi):
     """Extract Jakarta region from location string."""
@@ -34,7 +35,7 @@ def parse_number(value):
         # Remove thousands separator (.) and replace decimal comma with period
         cleaned = value.replace('.', '').replace(',', '.').strip()
         return float(cleaned) if cleaned else 0.0
-    except:
+    except (ValueError, AttributeError):
         return 0.0
 
 def process_transactions(csv_file):
@@ -72,7 +73,7 @@ def process_transactions(csv_file):
             qty_str = row.get('Qty', '0').strip()
             try:
                 qty = int(qty_str) if qty_str else 0
-            except:
+            except (ValueError, TypeError):
                 qty = 0
             
             nilai = parse_number(row.get(' Nilai', '0'))
@@ -163,7 +164,6 @@ def classify_items(items_by_region, item_presence, output_file):
         total_trans = sum(regional_data.values())
         h_norm = 0.0
         if total_trans > 0 and presence_count > 1:
-            from math import log
             for trans in regional_data.values():
                 if trans > 0:
                     p = trans / total_trans

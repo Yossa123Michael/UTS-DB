@@ -17,7 +17,7 @@ def format_rupiah(value):
         # Format with thousands separator
         formatted = f"{num:,.2f}".replace(',', '_').replace('.', ',').replace('_', '.')
         return f"Rp {formatted}"
-    except:
+    except (ValueError, TypeError):
         return value
 
 def format_number(value):
@@ -25,7 +25,7 @@ def format_number(value):
     try:
         num = int(float(value))
         return f"{num:,}"
-    except:
+    except (ValueError, TypeError):
         return value
 
 def read_top5_csv(csv_path):
